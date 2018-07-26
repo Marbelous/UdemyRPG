@@ -10,20 +10,20 @@ using UnityStandardAssets.CrossPlatformInput;
 [RequireComponent(typeof(ThirdPersonCharacter))]
 public class PlayerMovement : MonoBehaviour
 {
-    public Text msg;
-
     bool isInDirectMode = false; //TODO: Consider static
 
     [SerializeField] float walkStopRadius = .2f;
+    [SerializeField] float attackStopRadius = 5f;
     ThirdPersonCharacter thirdPersonCharacter;   // A reference to the ThirdPersonCharacter on the object
     CameraRaycaster cameraRaycaster;
-    Vector3 currentClickTarget;
+    Vector3 currentDestination, clickPoint;
 
     private void Start()
     {
         cameraRaycaster = Camera.main.GetComponent<CameraRaycaster>();
         thirdPersonCharacter = GetComponent<ThirdPersonCharacter>();
-        currentClickTarget = transform.position;
+        currentDestination = transform.position;
+
     }
 
     // Fixed update is called in sync with physics
@@ -32,7 +32,7 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.G))
         {
             isInDirectMode = !isInDirectMode;
-            currentClickTarget = transform.position;
+            currentDestination = transform.position;
 
         }
 
@@ -60,21 +60,23 @@ public class PlayerMovement : MonoBehaviour
     // TODO:  msg text does not update canvas in WASD mode?
     private void ProcessMouseMovement()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButton(0))
         {
             print("Cursor raycast hit" + cameraRaycaster.hit.collider.gameObject.name.ToString());
-            msg.text = cameraRaycaster.currentLayerHit.ToString();
+
+            clickPoint = cameraRaycaster.hit.point;
 
             switch (cameraRaycaster.currentLayerHit)
             {
                 case Layer.Walkable:
-                    currentClickTarget = cameraRaycaster.hit.point;  // So not set in default case
+                    currentDestination = ShortDestination(clickPoint, walkStopRadius);  // So not set in default case
                     break;
                 case Layer.Explorable:
                     print("This looks interesting...");
                     break;
                 case Layer.Enemy:
                     print("Enemy targeted!");
+                    currentDestination = ShortDestination(clickPoint, attackStopRadius);  // So not set in default case
                     break;
                 case Layer.Ignored:
                     print("Nah.");
@@ -85,8 +87,8 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        var playerToClickPoint = currentClickTarget - transform.position;
-        if (playerToClickPoint.magnitude >= walkStopRadius)
+        var playerToClickPoint = currentDestination - transform.position;
+        if (playerToClickPoint.magnitude >= 0.08f)
         {
             thirdPersonCharacter.Move(playerToClickPoint, false, false);
         }
@@ -94,6 +96,24 @@ public class PlayerMovement : MonoBehaviour
         {
             thirdPersonCharacter.Move(Vector3.zero, false, false);
         }
+    }
+
+    Vector3 ShortDestination(Vector3 destination, float shortening)
+    {
+        Vector3 reductionVector = (destination - transform.position).normalized * shortening;
+        return destination - reductionVector;
+    }
+
+    private void OnDrawGizmos()
+    {
+        print("Gizmo draw");
+        Gizmos.DrawLine(transform.position, clickPoint);
+        Gizmos.DrawSphere(currentDestination, 0.1f);
+        Gizmos.DrawSphere(clickPoint, 0.15f);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackStopRadius);
+
+
     }
 }
 
