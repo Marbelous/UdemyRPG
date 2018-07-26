@@ -15,13 +15,13 @@ public class RayCursor : MonoBehaviour
     void Awake()
     {
         cameraRaycaster = GetComponent<CameraRaycaster>();
-        cameraRaycaster.layerChangeObservers += OnLayerChanged; // Register the delegate
+        // TODO: Setup mechanism to deregister OnLayerChanged delegate after change in game scene?
+        cameraRaycaster.onLayerChange += OnLayerChanged; // Register the delegate
     }
 
-    void OnLayerChanged()
+    void OnLayerChanged(Layer newLayer)
     {
-        print("Wooo");
-        switch (cameraRaycaster.currentLayerHit)
+        switch (newLayer)
         {
             case Layer.Walkable:
                 Cursor.SetCursor(walkCursor, cursorHotspot, CursorMode.Auto);
