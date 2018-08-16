@@ -9,10 +9,10 @@ public class SomeObserver : MonoBehaviour
     void Awake()
     {
         cameraRaycaster = GetComponent<CameraRaycaster>();
-        cameraRaycaster.onLayerChange += SomeHandlingFunction;
+        cameraRaycaster.notifyLayerChangeObservers += SomeHandlingFunction;
     }
 
-    void SomeHandlingFunction(Layer layer)
+    void SomeHandlingFunction(int layer)
     {
         print("SomeHandlingFunction() called the layerChangeObserver delegate!");
     }

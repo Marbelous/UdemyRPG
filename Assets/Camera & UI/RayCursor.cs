@@ -10,32 +10,30 @@ public class RayCursor : MonoBehaviour
     [SerializeField] Texture2D explorableCursor = null;
     [SerializeField] Vector2 cursorHotspot = new Vector2(96, 96);
 
+    // TODO: Create proper customized editor for layers.
+    [SerializeField] const int walkableLayerNumber = 10;
+    [SerializeField] const int enemyLayerNumber = 11;
     CameraRaycaster cameraRaycaster;
 
     void Awake()
     {
         cameraRaycaster = GetComponent<CameraRaycaster>();
         // TODO: Setup mechanism to deregister OnLayerChanged delegate after change in game scene?
-        cameraRaycaster.onLayerChange += OnLayerChanged; // Register the delegate
+        cameraRaycaster.notifyLayerChangeObservers += OnLayerChanged; // Register the delegate
     }
 
-    void OnLayerChanged(Layer newLayer)
+    void OnLayerChanged(int newLayer)
     {
         switch (newLayer)
         {
-            case Layer.Walkable:
+            case walkableLayerNumber:
                 Cursor.SetCursor(walkCursor, cursorHotspot, CursorMode.Auto);
                 break;
-            case Layer.Explorable:
-                Cursor.SetCursor(explorableCursor, cursorHotspot, CursorMode.Auto);
-                break;
-            case Layer.Enemy:
+            case enemyLayerNumber:
                 Cursor.SetCursor(enemyCursor, cursorHotspot, CursorMode.Auto);
                 break;
-            case Layer.Ignored:
-                break;
             default:
-                Debug.LogError("No Icon for this hit location!");
+                Cursor.SetCursor(explorableCursor, cursorHotspot, CursorMode.Auto);
                 return;
         }
     }
